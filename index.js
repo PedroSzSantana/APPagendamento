@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(routes);
 MongoConnect();
-const PullTime = 60000;
+const PullTime = 5000;
 setInterval(() => {
   SendNotification();
 }, PullTime);

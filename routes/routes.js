@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const AppointmentService = require("../services/AppointmentService");
+const AppointmentFactory = require("../factories/AppointmentFactory");
 
 const routes = Router();
 
@@ -23,6 +24,12 @@ routes.post("/create", async (req, res) => {
 
 routes.get("/getcalendar", async (req, res) => {
   let consultas = await AppointmentService.GetAll(false);
+
+  let ArrAppo = [];
+  consultas.map((appo) => {
+    ArrAppo.push(AppointmentFactory.Build(appo));
+  });
+
   res.json(consultas);
 });
 
@@ -38,7 +45,7 @@ routes.get("/event/:id", async (req, res) => {
 routes.post("/finished", async (req, res) => {
   try {
     const id = req.body.id;
-    let appointment = await AppointmentService.Finished(id);
+    await AppointmentService.Finished(id);
     res.redirect("/");
   } catch (error) {
     res.status(500).json(error);

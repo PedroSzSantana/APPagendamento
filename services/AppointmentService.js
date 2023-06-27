@@ -1,5 +1,6 @@
-const AppointmentFactory = require("../factories/AppointmentFactory");
+const moment = require("moment/moment");
 const ModelAppo = require("../models/Appointment");
+const sendMail = require("../mail/SendMail");
 
 class AppointmentService {
   constructor() {
@@ -26,11 +27,7 @@ class AppointmentService {
       return await this.ModelApp.find();
     } else {
       const appo = await this.ModelApp.find({ finished: false });
-      let ArrAppo = [];
-      appo.map((appo) => {
-        ArrAppo.push(AppointmentFactory.Build(appo));
-      });
-      return ArrAppo;
+      return appo;
     }
   }
   async GetById(id) {
@@ -69,20 +66,33 @@ class AppointmentService {
   }
   async SendNotified() {
     try {
-      const appo = await this.GetAll(false);
-      appo.forEach((app) => {
-        let date = app.start.getTime();
-        let hour = 1000 * 60 * 60;
-        console.log("Date ------------", date);
-        let gap = date - Date.now();
-        console.log(hour);
-        console.log(gap);
-        if (gap < hour) {
-          console.log(app.title);
-          console.log("Enviar Mensagem");
+      const dataAtual = moment().format("YYYY-MM-DD");
+      const appo = await this.ModelApp.find({
+        date: dataAtual,
+        finished: false,
+        notified: false,
+      });
+      var horaAtual = new Date();
+      console.log(appo);
+      appo.forEach(async (app) => {
+        let date = app.time.split(":");
+        let hour = Number(date[0]);
+        let minutes = Number(date[1]);
+        let horarioAgendado = new Date();
+        horarioAgendado.setHours(hour);
+        horarioAgendado.setMinutes(minutes);
+
+        let horaAgendadaComUmaHoraAMais = new Date(
+          horarioAgendado.getTime() + 60 * 60 * 1000
+        );
+
+        if (
+          horaAtual >= horarioAgendado &&
+          horaAtual < horaAgendadaComUmaHoraAMais
+        ) {
+          sendMail(app.email, app.time);
         }
       });
-      console.log(appo);
     } catch (error) {
       console.log(error);
     }

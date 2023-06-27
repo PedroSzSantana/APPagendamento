@@ -4,7 +4,7 @@ const SendNotification = async () => {
   try {
     await AppointmentService.SendNotified();
   } catch (error) {
-    console.log(error);
+    throw error;
   }
 };
 module.exports = SendNotification;
